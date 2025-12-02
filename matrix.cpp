@@ -47,5 +47,13 @@ public:
     }
 
     return result;
-}
+  }
+
+  // diagonalize matrix
+  Matrix diagonalize() const {
+    Matrix result(num_rows, num_cols);
+    // implement
+
+    return result;
+  }
 };
