@@ -49,12 +49,18 @@ public:
     return result;
   }
 
-  Matrix get_eigenvalues() const {
+  std::pair<std::vector<double>, Matrix> compute_eigen_decomposition() {
+    // returns eigenvalues and eigenvectors at the same time 
+    // so you don't have to recompute 3 times
+
     // implement
+  }
+  std::vector<double> get_eigenvalues() const {
+    // implement getter
   }
 
   Matrix get_eigenvectors() const {
-    // implement
+    // implement getter
   }
 
   // diagonalize matrix
