@@ -49,9 +49,21 @@ public:
     return result;
   }
 
+  Matrix get_eigenvalues() const {
+    // implement
+  }
+
+  Matrix get_eigenvectors() const {
+    // implement
+  }
+
   // diagonalize matrix
   Matrix diagonalize() const {
     Matrix result(num_rows, num_cols);
+    // A = PDP^-1
+    // compute P (eigenvectors matrix of A) and check if it has full rank
+    // if full rank then it's diagonalizable, if not throw error (need to include a tolerance in the rank check)
+
     // implement
 
     return result;
