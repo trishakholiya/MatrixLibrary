@@ -44,6 +44,7 @@ public:
   }
 
   // equal to a matrix operator
+  // overload print << operator
 
 
   // overload addition operator
