@@ -93,8 +93,17 @@ public:
     return result;
   }
 
+  Matrix householder_tridiagonalize() {
+    // juliet implement
+  }
+
+  std::vector<double> qr_eigen_tridiagonal() {
+    // trisha implement
+  }
+
+
   /*
-  std::pair<vec, mat> compute_eigen_decomposition() {
+  std::pair<vec, mat> compute eigsym_decomposition() {
     // returns eigenvalues and eigenvectors at the same time 
     // so you don't have to recompute 3 times
 
@@ -119,6 +128,7 @@ public:
       }
     }
   }
+
   vec get_eigenvalues() const {
     // implement getter
   }
