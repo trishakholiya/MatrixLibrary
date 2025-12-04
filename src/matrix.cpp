@@ -99,6 +99,25 @@ public:
     // so you don't have to recompute 3 times
 
     // implement
+    int l, k, j, i;
+    double scale, hh, h, g, f;
+    for (i = n - 1; i > 0; i--) {
+      l = i -1;
+      h, scale = 0.0;
+      if (l > 0) {
+        for (k = 0; k < i; k++) {
+          scale += abs(z[i][k]);
+        }
+        if (scale == 0) {
+          e[i] = z[i][j];
+        } else {
+          for (k = 0; k < i; k++) {
+            z[i][k] /= scale;
+            h += z[i][k] * z[i][k];
+          }
+        }
+      }
+    }
   }
   vec get_eigenvalues() const {
     // implement getter
