@@ -112,6 +112,75 @@ struct QREigenResult {
 inline TridiagonalResult Matrix::householder_tridiagonalize() {
     TridiagonalResult result;
     // juliet implement
+    int l, k, j, i;
+    int n = num_rows;
+    double scale, hh, h, g, f;
+    for (i = n - 1; i > 0; i--) {
+      l = i - 1;
+      h = scale = 0.0;
+      if (l > 0) {
+        for (k = 0; k < i; k++)
+          scale += abs(matrix[i][k]);
+        if (scale == 0.0)
+          e[i] = matrix[i][l];
+        else {
+          for (k = 0; k < i; k++) {
+            z[i][k] /= scale;
+            h += z[i][k] * z[i][k];
+          }
+        }
+        f = z[i][l];
+        g = (f >= 0.0 ? -sqrt(h) : sqrt(h));
+        e[i] = scale * g;
+        h -= f * g;
+        z[i][l] = f - g;
+        f = 0.0;
+        for (j = 0; j < i; j ++) {
+          if (yesvecs)
+            z[j][i] = z[i][j] / h;
+          g = 0.0;
+          for (k = 0; k < j; k++)
+            g += z[j][k] * z[i][k];
+          for (k = j + 1; k < i; k++)
+            g += z[k][j] * z[i][k];
+          e[j] = g / h;
+          f += e[j] * z[i][j];
+        }
+        hh = f / (h + h);
+        for (j = 0; j < i; j++) {
+          f = z[i][j];
+          e[j] = g = e[j] - hh * f;
+          for (k = 0; k < j + 1; k++)
+            z[j][k] -= (f * e[k] + g * z[i][k]);
+        }
+      } else
+          e[i] = z[i][l];
+        d[i] = h;
+    }
+    if (yesvec)
+      d[0] = 0.0;
+    e[0] = 0.0;
+    for (i = 0; i < n; i++) {
+      if (yesvecs) {
+        if (d[i] != 0.0) {
+          for (j = 0; j < i; j++) {
+            g = 0.0;
+            for (k = 0; k < i; k++) 
+              g += z[i][k] * z[k][l];
+            for (k = 0; k < i; k++)
+              z[k][j] -= g * z[k][i];
+          }
+        }
+        
+        d[i] = z[i][i];
+        z[i][i] = 1.0;
+        for (j = 0; j < i; j++)
+          z[j][i] = z[i][j] = 0.0;
+      } else {
+        d[i] = z[i][i];
+      }        
+    }
+}
     return result;
 }
 
