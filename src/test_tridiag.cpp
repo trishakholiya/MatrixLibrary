@@ -15,8 +15,8 @@ void test_small() {
     print_vec(tri.d, "d");
     print_vec(tri.e, "e");
 
-    std::cout << "Q_house:\n";
-    tri.Q_house.print();
+    std::cout << "Q_house:\n" << tri.Q_house << '\n';
+    //tri.Q_house.print();
 }
 
 int main() {

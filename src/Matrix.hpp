@@ -2,6 +2,7 @@
 
 #include <iostream>
 #include <vector>
+#include <limits>
 #include "custom_exception.hpp"
 #include "helper_func.hpp" // numerical recipes helper functions
 
@@ -10,7 +11,7 @@ typedef std::vector<vec> mat;
 
 // Forward declarations of global result types
 struct TridiagonalResult;
-struct QREigenResult;
+// struct QREigenResult;
 struct EigsymResult;
 struct QLEigenResult;
 
@@ -22,8 +23,8 @@ private:
   vec matrix;
 
 public:
-  // initialize matrix of specific size with zeros
-  Matrix(int rows, int cols) : num_rows(rows), num_cols(cols), size(rows*cols), matrix(size, 0.0) {}
+  // initialize matrix of specific size
+  Matrix(int rows, int cols) : num_rows(rows), num_cols(cols), size(rows*cols), matrix(size) {}
 
   // empty constructor
   Matrix() : num_rows(0), num_cols(0), size(0) {}
@@ -42,33 +43,38 @@ public:
     matrix = std::move(values);
   }
 
+  static Matrix Ones(int rows, int cols) {
+    Matrix M(rows, cols);
+    std::fill(M.matrix.begin(), M.matrix.end(), 1.0);
+    return M;
+  }
+
+  static Matrix Zeros(int rows, int cols) {
+    Matrix M(rows, cols);
+    std::fill(M.matrix.begin(), M.matrix.end(), 0.0);
+    return M;
+  }
+
+  static Matrix Identity(int n) {
+    Matrix M(n, n);
+    std::fill(M.matrix.begin(), M.matrix.end(), 0.0);
+    for (int i = 0; i < n; i++)
+        M(i, i) = 1.0;
+    return M;
+  }
+
   // Accessors (getters)
-  double get_num_rows()
+  int get_num_rows() const
   {
     return this->num_rows;
   }
 
-  double const get_num_rows() const
-  {
-    return this->num_rows;
-  }
-
-  double get_num_cols()
+  int get_num_cols() const
   {
     return this->num_cols;
   }
 
-  double const get_num_cols() const
-  {
-    return this->num_cols;
-  }
-
-  double get_size()
-  {
-    return this->size;
-  }
-
-  double const get_size() const
+  int get_size() const
   {
     return this->size;
   }
@@ -83,14 +89,35 @@ public:
     return matrix[x * num_cols + y];
   }
 
-  TridiagonalResult householder_tridiagonalize(bool yesvecs = true);
-  QREigenResult QL(std::vector<double> d, std::vector<double> e);
+  TridiagonalResult householder_tridiagonalize(bool yesvecs = true) const;
+  QLEigenResult QL(std::vector<double> d, std::vector<double> e) const;
   EigsymResult eigsym() const;
 
   // equal to a matrix operator
+  inline bool operator==(const Matrix& other) const {
+    if (num_rows != other.num_rows || num_cols != other.num_cols) {
+      return false;
+    }
+
+    const double* m1 = this->matrix.data();
+    const double* m2 = other.matrix.data();
+
+    double epsilon = std::numeric_limits<double>::epsilon(); // NEED TO SEE IF THIS IS TOO STRICT?
+
+    for ( int i = 0; i < this->size ; i++ ) {
+      if ( std::abs(m1 - m2) > epsilon ) return false;
+    }
+
+    return true;
+  }
 
   // overload addition operator
   inline Matrix operator+(const Matrix& other) const {
+
+    if (num_rows != other.num_rows || num_cols != other.num_cols) {
+        throw InvalidMatrixSize("Matrix sizes must match for addition");
+    }
+
     vec result(size);
 
     const double* m1 = this->matrix.data();
@@ -104,12 +131,53 @@ public:
     return Matrix(result, num_rows, num_cols);
   }
 
+  // overload subtraction operator
+  inline Matrix operator-(const Matrix& other) const {
+    vec result(size);
 
-/*
-  double L2_norm() {
-    // need to implement this for benchmarking
-    return 0.0;
+    const double* m1 = this->matrix.data();
+    const double* m2 = other.matrix.data();
+    double* r = result.data();
+
+    for ( int i = 0; i < this->size ; i++ ) {
+      r[i] = m1[i] - m2[i];
+    }
+
+    return Matrix(result, num_rows, num_cols);
   }
+
+  inline Matrix operator*(const Matrix& other) const {
+    if (this->num_cols != other.num_rows) {
+        throw InvalidMatrixSize("Matrix dimensions incompatible for multiplication");
+    }
+
+    Matrix result(this->num_rows, other.num_cols);
+
+    for (int i = 0; i < this->num_rows; ++i) {
+        for (int j = 0; j < other.num_cols; ++j) {
+            double sum = 0.0;
+            for (int k = 0; k < this->num_cols; ++k) {
+                sum += (*this)(i, k) * other(k, j);
+            }
+            result(i, j) = sum;
+        }
+    }
+
+    return result;
+  }
+
+  bool is_symmetric(double tol = 1e-12) const {
+    if (num_rows != num_cols)
+        return false;
+
+    for (int i = 0; i < num_rows; i++) {
+        for (int j = i + 1; j < num_cols; j++) {  
+            if (std::abs((*this)(i, j) - (*this)(j, i)) > tol)
+                return false;
+        }
+    }
+    return true;
+}
 
   // transpose matrix
   Matrix transpose() const {
@@ -117,7 +185,7 @@ public:
 
     for (int i = 0; i < num_rows; i++) {
         for (int j = 0; j < num_cols; j++) {
-            result.matrix[j][i] = matrix[i][j];
+            result(j, i) = (*this)(i, j);
         }
     }
 
@@ -133,20 +201,20 @@ struct TridiagonalResult {
 
 struct QLEigenResult {
     std::vector<double> eigenvalues;
-    Matrix Q_ql; // accumulated QR transforms
+    Matrix Q_ql; // accumulated QL transforms
 };
 
 struct EigsymResult {
-    std::vector<double> eigenvalues;
+    vec eigenvalues;
     Matrix eigenvectors;   // columns = eigenvectors
 };
 
-inline TridiagonalResult Matrix::householder_tridiagonalize(bool yesvecs) {
+inline TridiagonalResult Matrix::householder_tridiagonalize(bool yesvecs) const {
     TridiagonalResult result;
     // juliet implement
     int l, k, j, i;
     int n = num_rows;
-    mat z = matrix;
+    Matrix z = *this;
     vec e(n), d(n);
     double scale, hh, h, g, f;
     for (i = n - 1; i > 0; i--) {
@@ -154,41 +222,45 @@ inline TridiagonalResult Matrix::householder_tridiagonalize(bool yesvecs) {
       h = scale = 0.0;
       if (l > 0) {
         for (k = 0; k < i; k++)
-          scale += abs(z[i][k]);
-        if (scale == 0.0)
-          e[i] = z[i][l];
-        else {
+          scale += abs(z(i, k));
+        if (scale == 0.0) {
+          e[i] = z(i, l);
+        } else {
           for (k = 0; k < i; k++) {
-            z[i][k] /= scale;
-            h += z[i][k] * z[i][k];
+            z(i, k) /= scale;
+            h += z(i, k) * z(i, k);
           }
+
+          f = z(i, l);
+          g = (f >= 0.0 ? -std::sqrt(h) : std::sqrt(h));
+          e[i] = scale * g;
+          h -= f * g;
+          z(i, l) = f - g;
+          f = 0.0;
+          for (j = 0; j < i; j ++) {
+            if (yesvecs)
+              z(j, i) = z(i, j) / h;
+            g = 0.0;
+            for (k = 0; k < j+1; k++)
+              g += z(j, k) * z(i, k);
+            for (k = j + 1; k < i; k++)
+              g += z(k, j) * z(i, k);
+            e[j] = g / h;
+            f += e[j] * z(i, j);
         }
-        f = z[i][l];
-        g = (f >= 0.0 ? -sqrt(h) : sqrt(h));
-        e[i] = scale * g;
-        h -= f * g;
-        z[i][l] = f - g;
-        f = 0.0;
-        for (j = 0; j < i; j ++) {
-          if (yesvecs)
-            z[j][i] = z[i][j] / h;
-          g = 0.0;
-          for (k = 0; k < j; k++)
-            g += z[j][k] * z[i][k];
-          for (k = j + 1; k < i; k++)
-            g += z[k][j] * z[i][k];
-          e[j] = g / h;
-          f += e[j] * z[i][j];
-        }
+
         hh = f / (h + h);
+
         for (j = 0; j < i; j++) {
-          f = z[i][j];
+          f = z(i, j);
           e[j] = g = e[j] - hh * f;
+
           for (k = 0; k < j + 1; k++)
-            z[j][k] -= (f * e[k] + g * z[i][k]);
+            z(j, k) -= (f * e[k] + g * z(i, k));
         }
+      }
       } else
-          e[i] = z[i][l];
+          e[i] = z(i, l);
         d[i] = h;
     }
     if (yesvecs)
@@ -200,33 +272,24 @@ inline TridiagonalResult Matrix::householder_tridiagonalize(bool yesvecs) {
           for (j = 0; j < i; j++) {
             g = 0.0;
             for (k = 0; k < i; k++) 
-              g += z[i][k] * z[k][j];
+              g += z(i, k) * z(k, j);
             for (k = 0; k < i; k++)
-              z[k][j] -= g * z[k][i];
+              z(k, j) -= g * z(k, i);
           }
         }
         
-        d[i] = z[i][i];
-        z[i][i] = 1.0;
+        d[i] = z(i, i);
+        z(i, i) = 1.0;
         for (j = 0; j < i; j++)
-          z[j][i] = z[i][j] = 0.0;
+          z(j, i) = z(i, j) = 0.0;
 
       } else {
-        d[i] = z[i][i];
+        d[i] = z(i, i);
       }        
     }
 
     if (yesvecs) {
-      // flatten z for now to construct matrix
-      vec flatZ;
-      flatZ.reserve(n * n);
-
-        for (int r = 0; r < n; r++) {
-          for (int c = 0; c < n; c++) {
-            flatZ.push_back(z[r][c]);
-          }
-        }
-      result.Q_house = Matrix(flatZ, n, n);
+      result.Q_house = z;
     }
 
     result.d = d;
@@ -235,19 +298,14 @@ inline TridiagonalResult Matrix::householder_tridiagonalize(bool yesvecs) {
     return result;
 }
 
-inline QLEigenResult Matrix::QL(std::vector<double> d, std::vector<double> e) {
+inline QLEigenResult Matrix::QL(std::vector<double> d, std::vector<double> e) const {
   QLEigenResult result;
   int n = d.size();
   int m, l, iter, i, k;
   double s, r, p, g, f, dd, c, b;
   const double eps=std::numeric_limits<double>::epsilon();
 
-
-  // initialize Z matrix (to store eigenvectors)
-  std::vector<std::vector<double>> z(n, std::vector<double>(n, 0.0));
-  for (i = 0; i < n; i++) {
-    z[i][i] = 1.0;
-  }
+  Matrix z = Matrix::Identity(n); // to store eigenvectors
 
   for (i = 1; i < n; i++) {
     e[i-1] = e[i];
@@ -289,9 +347,9 @@ inline QLEigenResult Matrix::QL(std::vector<double> d, std::vector<double> e) {
           
           // FORM EIGENVECTORS
           for ( k=0; k<n; k++ ) {
-            f = z[k][i+1];
-            z[k][i+1] = s*z[k][i]+c*f;
-            z[k][i] = c*z[k][i]-s*f;
+            f = z(k, i+1);
+            z(k, i+1) = s*z(k, i)+c*f;
+            z(k, i) = c*z(k, i)-s*f;
           }
 
         }
@@ -303,37 +361,33 @@ inline QLEigenResult Matrix::QL(std::vector<double> d, std::vector<double> e) {
     } while ( m != l );
   }
 
-  // flatten z for now to construct matrix
-  vec flatZ;
-  flatZ.reserve(n * n);
-
-  for (int i = 0; i < n; i++) {
-      for (int j = 0; j < n; j++) {
-          flatZ.push_back(z[i][j]);
-      }
-  }
   result.eigenvalues = d;
-  result.Q_ql = Matrix(flatZ, n, n);
+  result.Q_ql = z;
   return result;
 }
 
 inline EigsymResult Matrix::eigsym() const {
-    EigsymResult result;
-    
-    TridiagonalResult tri = householder_tridiagonalize(true);
+  if (num_rows != num_cols) {
+    throw InvalidMatrixSize("householder_tridiagonalize requires a square matrix");
+  }
 
-    QREigenResult qr = QL(tri.d, tri.e);
+  if (!is_symmetric()) {
+    throw InvalidMatrixSize("Matrix must be symmetric for eigsym()");
+  }
+  
+  EigsymResult result;
+  
+  TridiagonalResult tri = householder_tridiagonalize(true);
 
-    Matrix P = tri.Q_house * qr.Q_qr;
+  QLEigenResult ql = QL(tri.d, tri.e);
 
-    result.eigenvalues = qr.eigenvalues;
-    result.eigenvectors = P;
+  Matrix P = tri.Q_house * ql.Q_ql;
 
-    return result;
+  result.eigenvalues = ql.eigenvalues;
+  result.eigenvectors = P;
+
+  return result;
 }
-
-*/
-};
 
 // overload print << operator
 std::ostream& operator<<(std::ostream& out, const Matrix & M) {
