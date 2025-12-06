@@ -48,8 +48,8 @@ public:
     }
   }
 
-  TridiagonalResult householder_tridiagonalize(bool yesvecs = true);
-  QREigenResult QL(std::vector<double> d, std::vector<double> e);
+  TridiagonalResult householder_tridiagonalize(bool yesvecs = true) const;
+  QREigenResult QL(std::vector<double> d, std::vector<double> e) const;
   EigsymResult eigsym() const;
 
   // equal to a matrix operator
@@ -118,7 +118,7 @@ struct EigsymResult {
     Matrix eigenvectors;   // columns = eigenvectors
 };
 
-inline TridiagonalResult Matrix::householder_tridiagonalize(bool yesvecs) {
+inline TridiagonalResult Matrix::householder_tridiagonalize(bool yesvecs) const {
     TridiagonalResult result;
     // juliet implement
     int l, k, j, i;
@@ -212,7 +212,7 @@ inline TridiagonalResult Matrix::householder_tridiagonalize(bool yesvecs) {
     return result;
 }
 
-inline QLEigenResult Matrix::QL(std::vector<double> d, std::vector<double> e) {
+inline QLEigenResult Matrix::QL(std::vector<double> d, std::vector<double> e) const {
   QLEigenResult result;
   int n = d.size();
   int m, l, iter, i, k;
