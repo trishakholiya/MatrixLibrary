@@ -11,6 +11,7 @@ typedef std::vector<vec> mat;
 // Forward declarations of global result types
 struct TridiagonalResult;
 struct QREigenResult;
+struct EigsymResult;
 
 class Matrix {
 private:
@@ -48,6 +49,7 @@ public:
 
   TridiagonalResult householder_tridiagonalize(bool yesvecs = true);
   QREigenResult QL(std::vector<double> d, std::vector<double> e);
+  EigsymResult eigsym() const;
 
   // equal to a matrix operator
   // overload print << operator
@@ -108,6 +110,11 @@ struct TridiagonalResult {
 struct QREigenResult {
     std::vector<double> eigenvalues;
     Matrix Q_qr; // accumulated QR transforms
+};
+
+struct EigsymResult {
+    std::vector<double> eigenvalues;
+    Matrix eigenvectors;   // columns = eigenvectors
 };
 
 inline TridiagonalResult Matrix::householder_tridiagonalize(bool yesvecs) {
@@ -285,4 +292,20 @@ inline QREigenResult Matrix::QL(std::vector<double> d, std::vector<double> e) {
   result.Q_qr = Matrix(flatZ, n, n);
   return result;
 }
+
+inline EigsymResult Matrix::eigsym() const {
+    EigsymResult result;
+    
+    TridiagonalResult tri = householder_tridiagonalize(true);
+
+    QREigenResult qr = QL(tri.d, tri.e);
+
+    Matrix P = tri.Q_house * qr.Q_qr;
+
+    result.eigenvalues = qr.eigenvalues;
+    result.eigenvectors = P;
+    
+    return result;
+}
+
 
