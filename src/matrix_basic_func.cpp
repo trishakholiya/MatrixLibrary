@@ -43,6 +43,17 @@ Matrix Matrix::Zeros(int rows, int cols) {
   return M;
 }
 
+Matrix Matrix::Random(int rows, int cols) {
+  Matrix M(rows, cols);
+  
+  std::random_device rd;
+  std::mt19937 generator(rd());
+
+  std::uniform_real_distribution<double> distribution(0.0, 1.0);
+  std::generate(M.matrix.begin(), M.matrix.end(), [&]() { return distribution(generator); });
+  return M;
+}
+
 Matrix Matrix::Identity(int n) {
   Matrix M(n, n);
   std::fill(M.matrix.begin(), M.matrix.end(), 0.0);

@@ -8,6 +8,7 @@
 #include <cmath>
 #include <iomanip>
 #include <stdexcept>
+#include <random>
 
 typedef std::vector<double> vec;
 // typedef std::vector<vec> mat;
@@ -33,6 +34,7 @@ public:
 
   static Matrix Ones(int rows, int cols);
   static Matrix Zeros(int rows, int cols);
+  static Matrix Random(int rows, int cols);
   static Matrix Identity(int n);
 
   // Accessors (getters)
