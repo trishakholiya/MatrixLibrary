@@ -1,34 +1,38 @@
 cmake_minimum_required (VERSION 3.31)
 
-project (matrix_library LANGUAGES C CXX)
+project (MatrixLibrary VERSION 1.0.0
+  DESCRIPTION "Matrix Library with Linear Algebra Features"
+  LANGUAGES CXX)
 
 # Compiler requirements
-set(CMAKE_C_STANDARD 99)
-set(CMAKE_C_STANDARD_REQUIRED ON)
-
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+include(GNUInstallDirs)
 
 # Find libraries
 find_package(nlohmann_json REQUIRED)
-# HDF5 / commented out bc was causing problems
-# find_package(HDF5 REQUIRED)
-# find_package(HighFive REQUIRED)
 find_package(Armadillo REQUIRED)
 find_package(Eigen3 3.4 REQUIRED NO_MODULE)
 find_package(BLAS REQUIRED)
 find_package(LAPACK REQUIRED)
-find_package(chemfiles REQUIRED)
+find_package(Threads REQUIRED) # for google benchmarking
+#find_package(chemfiles REQUIRED)
 
-add_library(common INTERFACE)
+# Library
+add_library(MatrixLibrary
+  src/matrix_utilfuncs.cpp
+  src/matrix_basic_func.cpp
+  src/matrix_operators.cpp
+  src/matrix_eigendecomp.cpp
+  src/helper_func.cpp)
 
-target_include_directories(common INTERFACE
-    ${CMAKE_CURRENT_SOURCE_DIR}/src
-)
+target_include_directories(
+  MatrixLibrary
+  PRIVATE src
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+			$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
-target_link_libraries(common INTERFACE
+target_link_libraries(MatrixLibrary PUBLIC
     Eigen3::Eigen
     armadillo
     nlohmann_json::nlohmann_json
@@ -40,23 +44,35 @@ target_link_libraries(common INTERFACE
 add_compile_options(-Wa,--gsframe=no) # suppresses a useless warning on x86 machines
 
 # executables
+add_executable(main src/main.cpp) # need to remove for actual library when we're done testing
+target_link_libraries(main PRIVATE MatrixLibrary)
 
-add_executable(main src/main.cpp)
-target_link_libraries(main PRIVATE common)
-
-# google test stuff
-
+# Google Test
 include(FetchContent)
-
 FetchContent_Declare(
   googletest
   URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
 )
-
 FetchContent_MakeAvailable(googletest)
 
 add_executable(my_tests test/test_matrix.cpp)
-target_link_libraries(my_tests PRIVATE common gtest_main)
+target_link_libraries(my_tests PRIVATE MatrixLibrary gtest_main)
 
 enable_testing()
 add_test(NAME my_tests COMMAND my_tests)
+
+# Google Benchmark
+FetchContent_Declare(
+  googlebenchmark
+  URL https://github.com/google/benchmark/archive/refs/tags/v1.9.0.zip
+)
+FetchContent_MakeAvailable(googlebenchmark)
+
+add_executable(matrix_benchmarks
+    benchmarking/benchmark_addition.cpp
+)
+
+target_link_libraries(matrix_benchmarks 
+  PRIVATE MatrixLibrary 
+  benchmark::benchmark
+  Threads::Threads)
