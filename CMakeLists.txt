@@ -69,7 +69,9 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googlebenchmark)
 
 add_executable(matrix_benchmarks
-    benchmarking/benchmark_addition.cpp
+  benchmarking/benchmark_main.cpp
+  benchmarking/benchmark_addition.cpp
+  benchmarking/benchmark_multiplication.cpp
 )
 
 target_link_libraries(matrix_benchmarks 
