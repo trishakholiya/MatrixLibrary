@@ -3,6 +3,8 @@
 #include <cmath>
 #include <stdexcept>
 #include <limits>
+#include <algorithm> // for std::sort
+#include <numeric> // for std::iota
 
 TridiagonalResult Matrix::householder_tridiagonalize(bool yesvecs) const {
     TridiagonalResult result;
@@ -168,17 +170,43 @@ EigsymResult Matrix::eigsym() const {
   if (!is_symmetric(1e-8)) {
     throw InvalidMatrixSize("Matrix must be symmetric for eigsym()");
   }
-  
-  EigsymResult result;
-  
+    
   TridiagonalResult tri = householder_tridiagonalize(true);
 
   QLEigenResult ql = QL(tri.d, tri.e);
 
   Matrix P = tri.Q_house * ql.Q_ql;
 
-  result.eigenvalues = ql.eigenvalues;
-  result.eigenvectors = P;
+  vec eigenvalues = ql.eigenvalues; // copy so it can be reorder
+  int n = static_cast<int>(eigenvalues.size());
+
+  // build index array
+  std::vector<int> idx(n);
+  std::iota(idx.begin(), idx.end(), 0);
+
+
+  // sort indices by eigenvalue (ascending)
+  std::sort(idx.begin(), idx.end(), [&](int i, int j) {
+    return eigenvalues[i] < eigenvalues[j];
+  });
+
+  // build sorted eigenvalues and eigenvectors
+  vec eigenvalues_sorted(n);
+  Matrix P_sorted(n, n);
+
+  for (int k = 0; k < n; ++k) {
+    int j = idx[k];  // original eigenpair index
+    eigenvalues_sorted[k] = eigenvalues[j];
+
+    // copy column j of P into column k of P_sorted
+    for (int row = 0; row < n; ++row) {
+      P_sorted(row, k) = P(row, j);
+    }
+  }
+
+  EigsymResult result;
+  result.eigenvalues  = std::move(eigenvalues_sorted);
+  result.eigenvectors = std::move(P_sorted);
 
   return result;
 }
