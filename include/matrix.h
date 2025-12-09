@@ -11,7 +11,6 @@
 #include <random>
 
 typedef std::vector<double> vec;
-// typedef std::vector<vec> mat;
 
 // Forward declarations of global result types
 struct TridiagonalResult;
@@ -56,19 +55,19 @@ public:
   bool is_symmetric(double tol) const;
   Matrix transpose() const;
   TridiagonalResult householder_tridiagonalize(bool yesvecs = true) const;
-  QLEigenResult QL(std::vector<double> d, std::vector<double> e) const;
+  QLEigenResult QL(vec d, vec e) const;
   EigsymResult eigsym() const;
 };
 
 // structs for eigen decomposition
 struct TridiagonalResult { 
-    std::vector<double> d;
-    std::vector<double> e;
+    vec d;
+    vec e;
     Matrix Q_house;
 };
 
 struct QLEigenResult {
-    std::vector<double> eigenvalues;
+    vec eigenvalues;
     Matrix Q_ql;
 };
 
