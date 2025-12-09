@@ -1,3 +1,4 @@
+/*
 #pragma once
 
 #include <iostream>
@@ -5,6 +6,7 @@
 #include <limits>
 #include "custom_exception.hpp"
 #include "helper_func.hpp" // numerical recipes helper functions
+#include <cmath>
 
 typedef std::vector<double> vec;
 typedef std::vector<vec> mat;
@@ -30,7 +32,7 @@ public:
   Matrix() : num_rows(0), num_cols(0), size(0) {}
 
   // constructor from FLAT vector
-  Matrix(const vec& values, int rows, int cols)
+  Matrix(const vec& values, int rows, int cols) // l-value
     : num_rows(rows), 
       num_cols(cols), 
       size(rows*cols)
@@ -40,8 +42,19 @@ public:
         throw InvalidMatrixSize("Flat vector size does not match requested matrix dimensions");
     }
 
-    matrix = std::move(values);
+    matrix = values;
   }
+
+  Matrix(vec&& values, int rows, int cols) // r-value
+    : num_rows(rows), 
+      num_cols(cols), 
+      size(rows*cols),
+      matrix(std::move(values)) {
+      // make sure this matrix can be constructed
+      if (values.size() != rows * cols) {
+        throw InvalidMatrixSize("Flat vector size does not match requested matrix dimensions");
+      }
+    }
 
   static Matrix Ones(int rows, int cols) {
     Matrix M(rows, cols);
@@ -79,13 +92,24 @@ public:
     return this->size;
   }
 
+  const vec& get_data() const
+  {
+    return this->matrix;
+  }
+
   // operator to access the matrix so you can call matrix(1, 1)
   inline double& operator()(int x, int y) {
+    if (x < 0 || x >= num_rows || y < 0 || y >= num_cols) {
+      throw std::out_of_range("Matrix index out of range");
+    }
     return matrix[x * num_cols + y];
   }
 
   // operator to access the matrix so you can call matrix(1, 1)
   inline const double& operator()(int x, int y) const {
+    if (x < 0 || x >= num_rows || y < 0 || y >= num_cols) {
+      throw std::out_of_range("Matrix index out of range");
+    }
     return matrix[x * num_cols + y];
   }
 
@@ -105,7 +129,7 @@ public:
     double epsilon = std::numeric_limits<double>::epsilon(); // NEED TO SEE IF THIS IS TOO STRICT?
 
     for ( int i = 0; i < this->size ; i++ ) {
-      if ( std::abs(m1 - m2) > epsilon ) return false;
+      if ( std::abs(m1[i] - m2[i]) > epsilon ) return false;
     }
 
     return true;
@@ -151,7 +175,7 @@ public:
         throw InvalidMatrixSize("Matrix dimensions incompatible for multiplication");
     }
 
-    Matrix result(this->num_rows, other.num_cols);
+    Matrix result::Zeros(this->num_rows, other.num_cols);
 
     for (int i = 0; i < this->num_rows; ++i) {
         for (int j = 0; j < other.num_cols; ++j) {
@@ -164,6 +188,14 @@ public:
     }
 
     return result;
+  }
+
+  Matrix operator*(double s) const {
+    vec result_vec(get_size());
+
+    std::transform(matrix.begin(), matrix.end(), result_vec.begin(), 
+                   [&s](double val) { return val * s; });
+    return Matrix(result_vec, get_num_rows(), get_num_cols());
   }
 
   bool is_symmetric(double tol = 1e-12) const {
@@ -222,7 +254,7 @@ inline TridiagonalResult Matrix::householder_tridiagonalize(bool yesvecs) const 
       h = scale = 0.0;
       if (l > 0) {
         for (k = 0; k < i; k++)
-          scale += abs(z(i, k));
+          scale += std::abs(z(i, k));
         if (scale == 0.0) {
           e[i] = z(i, l);
         } else {
@@ -391,13 +423,15 @@ inline EigsymResult Matrix::eigsym() const {
 
 // overload print << operator
 std::ostream& operator<<(std::ostream& out, const Matrix & M) {
+  out << std::fixed << std::setprecision(6); // set precision
   out << "\n";
   for (int i = 0; i < M.get_num_rows(); i++) {
       for (int j = 0; j < M.get_num_cols(); j++) {
-          out << M(i, j) << "  "; // need to figure out spacing between numbers
+          out << set::sw(10) << M(i, j) << "  "; // set a constant width
       }
       out << "\n"; // line between rows
   }
   out << "\n";
   return out;
 }
+*/

@@ -1,7 +1,6 @@
-#pragma once
+#include "helper_func.hpp"
 #include <cmath>
 
-// helper function
 double SIGN(double a, double b) {
   if ( b >= 0.0 ) {
     return std::fabs(a);
@@ -10,7 +9,6 @@ double SIGN(double a, double b) {
   }
 }
 
-// helper function
 double pythag(const double a, const double b) {
   // computes sqrt(a^2 + b^2) without destructive underflow or overflow
   double absa = std::abs(a);
