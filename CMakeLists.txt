@@ -63,9 +63,8 @@ FetchContent_MakeAvailable(googletest)
 
 add_executable(my_tests
     test/test_matrix_arithmetic.cpp
-    #test/test_matrix_basics.cpp
-    #test/test_matrix_eigsym.cpp)
-)
+    test/test_matrix_basics.cpp
+    test/test_matrix_eigsym.cpp)
 
 target_link_libraries(my_tests PRIVATE MatrixLibrary gtest_main)
 

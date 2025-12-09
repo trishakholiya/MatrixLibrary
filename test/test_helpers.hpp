@@ -64,3 +64,29 @@ inline double max_abs_error(const Matrix& M, const arma::mat& A) {
 
     return max_err;
 }
+
+// max |v_i - ref_i| for eigenvalues
+inline double max_abs_error_vec(const vec& v, const arma::vec& ref) {
+    if (v.size() != ref.n_elem) {
+        throw std::runtime_error("Size mismatch in max_abs_error_vec");
+    }
+    double max_err = 0.0;
+    for (arma::uword i = 0; i < ref.n_elem; ++i) {
+        double diff = std::abs(v[i] - ref(i));
+        if (diff > max_err) max_err = diff;
+    }
+    return max_err;
+}
+
+inline Matrix random_symmetric_matrix(int n) {
+    Matrix A = Matrix::Random(n, n);
+    Matrix S(n, n);
+
+    // S = 0.5 * (A + A^T)
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            S(i,j) = 0.5 * (A(i,j) + A(j,i));
+        }
+    }
+    return S;
+}
