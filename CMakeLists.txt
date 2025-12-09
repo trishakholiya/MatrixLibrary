@@ -19,12 +19,16 @@ find_package(Threads REQUIRED) # for google benchmarking
 #find_package(chemfiles REQUIRED)
 
 # Library
-add_library(MatrixLibrary
-  src/matrix_utilfuncs.cpp
-  src/matrix_basic_func.cpp
-  src/matrix_operators.cpp
-  src/matrix_eigendecomp.cpp
-  src/helper_func.cpp)
+add_library(MatrixLibrary)
+
+target_sources(
+  MatrixLibrary
+  PRIVATE src/matrix_utilfuncs.cpp
+          src/matrix_basic_func.cpp
+          src/matrix_operators.cpp
+          src/matrix_eigendecomp.cpp
+          src/helper_func.cpp
+)
 
 target_include_directories(
   MatrixLibrary
@@ -36,7 +40,7 @@ target_link_libraries(MatrixLibrary PUBLIC
     Eigen3::Eigen
     armadillo
     nlohmann_json::nlohmann_json
-    chemfiles
+    #chemfiles
     BLAS::BLAS
     LAPACK::LAPACK
 )
@@ -78,3 +82,41 @@ target_link_libraries(matrix_benchmarks
   PRIVATE MatrixLibrary 
   benchmark::benchmark
   Threads::Threads)
+
+################
+# BEGIN INSTALL SECTION
+#################
+
+include(GNUInstallDirs)
+
+install(TARGETS MatrixLibrary
+				EXPORT MatrixLibraryTargets
+				LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+				ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+				RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+				INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+install(DIRECTORY include/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
+include(CMakePackageConfigHelpers)
+
+configure_package_config_file(
+	${CMAKE_CURRENT_SOURCE_DIR}/cmake/MatrixLibraryConfig.cmake.in
+	${CMAKE_CURRENT_BINARY_DIR}/MatrixLibraryConfig.cmake
+	INSTALL_DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/cmake/MatrixLibrary
+)
+	
+write_basic_package_version_file(
+	${CMAKE_CURRENT_BINARY_DIR}/MatrixLibraryConfigVersion.cmake
+	VERSION ${PROJECT_VERSION}
+  COMPATIBILITY SameMajorVersion
+)
+
+install(
+	FILES ${CMAKE_CURRENT_BINARY_DIR}/MatrixLibraryConfig.cmake
+				${CMAKE_CURRENT_BINARY_DIR}/MatrixLibraryConfigVersion.cmake
+	DESTINATION ${CMAKE_INSTALLL_DATAROOTDIR}/cmake/MatrixLibrary
+)
