@@ -106,15 +106,15 @@ TEST(MatrixBasics, ElementAccessAndEquality) {
 TEST(MatrixBasics, TransposeMatchesArmadillo) {
     Matrix A = Matrix::Random(2, 3);
 
-    Matrix At_my = A.transpose();
+    Matrix At_mat_lib = A.transpose();
     arma::mat A_ref = to_arma(A);
     arma::mat At_ref = A_ref.t();
 
-    double max_err = max_abs_error(At_my, At_ref);
+    double max_err = max_abs_error(At_mat_lib, At_ref);
     std::cout << "[Basics] Transpose 2x3 -> 3x2  max_abs_error = "
               << max_err << "\n";
 
-    EXPECT_TRUE(mats_close(At_my, At_ref));
+    EXPECT_TRUE(mats_close(At_mat_lib, At_ref));
 }
 
 // symmetry check

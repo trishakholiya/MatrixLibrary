@@ -3,6 +3,7 @@
 #include <tuple> // for std::tuple in parameterized mul test
 #include "matrix.h"
 #include "test_helpers.hpp"
+#include <fstream> // for getting the accuracy/error output in a file
 
 // file includes tests for add, subract, multiply, multiply by scalar
 
@@ -12,13 +13,13 @@ TEST(MatrixArithmetic, AddMatchesArmadillo) {
     Matrix A = Matrix::Random(3,3);
     Matrix B = Matrix::Random(3,3);
 
-    Matrix C_my = A + B;
+    Matrix C_mat_lib = A + B;
 
     arma::mat A_ref = to_arma(A);
     arma::mat B_ref = to_arma(B);
     arma::mat C_ref = A_ref + B_ref;
 
-    EXPECT_TRUE(mats_close(C_my, C_ref));
+    EXPECT_TRUE(mats_close(C_mat_lib, C_ref));
 }
 
 // same but for multiplication of 2 matrices
@@ -26,13 +27,13 @@ TEST(MatrixArithmetic, MulMatchesArmadillo) {
     Matrix A = Matrix::Random(2,3);
     Matrix B = Matrix::Random(3,4);
 
-    Matrix C_my = A * B;
+    Matrix C_mat_lib = A * B;
 
     arma::mat A_ref = to_arma(A);
     arma::mat B_ref = to_arma(B);
     arma::mat C_ref = A_ref * B_ref;
 
-    EXPECT_TRUE(mats_close(C_my, C_ref));
+    EXPECT_TRUE(mats_close(C_mat_lib, C_ref));
 }
 
 // same but for multiplying matrix by a scalar
@@ -40,10 +41,10 @@ TEST(MatrixArithmetic, ScalarMulMatchesArmadillo) {
     Matrix A = Matrix::Random(3,3);
     double s = -2.5;
 
-    Matrix C_my = A * s;
+    Matrix C_mat_lib = A * s;
     arma::mat C_ref = to_arma(A) * s;
 
-    EXPECT_TRUE(mats_close(C_my, C_ref));
+    EXPECT_TRUE(mats_close(C_mat_lib, C_ref));
 }
 
 // ##### PARAMETERIZED TESTS FOR DIFFERENT SIZES #####
@@ -58,17 +59,21 @@ TEST_P(MatrixAddSizeTest, AddMatchesArmadilloForSize) {
     Matrix A = Matrix::Random(n, n);
     Matrix B = Matrix::Random(n, n);
 
-    Matrix C_my = A + B;
+    Matrix C_mat_lib = A + B;
 
     arma::mat A_ref = to_arma(A);
     arma::mat B_ref = to_arma(B);
     arma::mat C_ref = A_ref + B_ref;
 
-    double max_err = max_abs_error(C_my, C_ref);
+    double max_err = max_abs_error(C_mat_lib, C_ref);
 
     std::cout << "[Add] n = " << n << "  max_abs_error = " << max_err << "\n";
 
-    EXPECT_TRUE(mats_close(C_my, C_ref))
+    // append output to file
+    std::ofstream out("add_accuracy.txt", std::ios::app);
+    out << n << " " << max_err << "\n";
+
+    EXPECT_TRUE(mats_close(C_mat_lib, C_ref))
         << "Addition failed for size " << n << "x" << n;
 }
 
@@ -95,24 +100,30 @@ TEST_P(MatrixMulShapeTest, MulMatchesArmadilloForShape) {
     Matrix A = Matrix::Random(r1, c1);
     Matrix B = Matrix::Random(r2, c2);
 
-    Matrix C_my = A * B;
+    Matrix C_mat_lib = A * B;
 
     arma::mat A_ref = to_arma(A);
     arma::mat B_ref = to_arma(B);
     arma::mat C_ref = A_ref * B_ref;
 
     // compute max per-element absolute error
-    double max_err = max_abs_error(C_my, C_ref);
+    double max_err = max_abs_error(C_mat_lib, C_ref);
 
     // print it to see accuracy by shape
     std::cout << "[Mul] "
-              << r1 << "x" << c1 << " * " << r2 << "x" << c2
-              << "  max_abs_error = " << max_err << "\n";
+    << r1 << "x" << c1 << " * " << r2 << "x" << c2
+    << "  max_abs_error = " << max_err << "\n";
 
-    EXPECT_TRUE(mats_close(C_my, C_ref))
-        << "Multiply failed for shapes "
-        << r1 << "x" << c1 << " * " << r2 << "x" << c2
-        << "  (max_abs_error = " << max_err << ")";
+    // append shape and error to file
+    std::ofstream out("mul_accuracy.txt", std::ios::app);
+    out << r1 << " " << c1 << " "
+        << r2 << " " << c2 << " "
+        << max_err << "\n";
+
+    EXPECT_TRUE(mats_close(C_mat_lib, C_ref))
+    << "Multiply failed for shapes "
+    << r1 << "x" << c1 << " * " << r2 << "x" << c2
+    << "  (max_abs_error = " << max_err << ")";
 }
 
 // list of shapes to test

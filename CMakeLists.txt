@@ -89,6 +89,17 @@ target_link_libraries(matrix_benchmarks
   benchmark::benchmark
   Threads::Threads)
 
+# benchmarking accuracy
+add_executable(bench_accuracy benchmarking/benchmark_accuracy.cpp)
+
+target_link_libraries(bench_accuracy PRIVATE
+    MatrixLibrary
+)
+
+target_include_directories(bench_accuracy PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/test
+)
+
 ################
 # BEGIN INSTALL SECTION
 #################
@@ -124,5 +135,5 @@ write_basic_package_version_file(
 install(
 	FILES ${CMAKE_CURRENT_BINARY_DIR}/MatrixLibraryConfig.cmake
 				${CMAKE_CURRENT_BINARY_DIR}/MatrixLibraryConfigVersion.cmake
-	DESTINATION ${CMAKE_INSTALLL_DATAROOTDIR}/cmake/MatrixLibrary
+	DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/cmake/MatrixLibrary
 )
