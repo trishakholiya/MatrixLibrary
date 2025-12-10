@@ -109,11 +109,11 @@ Matrix Matrix::operator*(double s) const {
 }
 
 std::ostream& operator<<(std::ostream& out, const Matrix & M) {
-  out << std::fixed << std::setprecision(6); // set precision
+  out << std::fixed << std::setprecision(4);
   out << "\n";
   for (int i = 0; i < M.get_num_rows(); i++) {
       for (int j = 0; j < M.get_num_cols(); j++) {
-          out << std::setw(10) << M(i, j) << "  "; // set a constant width
+          out << std::setw(8) << M(i, j) << "  "; // set a constant width
       }
       out << "\n"; // line between rows
   }

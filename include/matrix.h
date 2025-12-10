@@ -52,13 +52,18 @@ public:
   Matrix operator*(double s) const;
 
   // linear algebra functions
-  Matrix diagmat(vec vector) const;
-  Matrix diagmat(Matrix mat) const;
+  static Matrix diagmat(const vec& vector);
+  static Matrix diagmat(const Matrix& mat);
   bool is_symmetric(double tol) const;
   Matrix transpose() const;
   TridiagonalResult householder_tridiagonalize(bool yesvecs = true) const;
   QLEigenResult QL(vec d, vec e) const;
   EigsymResult eigsym() const;
+
+  // saving
+  static void save_hdf5(const Matrix& data, const std::string& filename, const std::string& dataset_name);
+  static void save_hdf5(const vec& data, const std::string& filename, const std::string& dataset_name);
+
 };
 
 // structs for eigen decomposition

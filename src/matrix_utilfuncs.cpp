@@ -1,7 +1,9 @@
 #include "matrix.h"
 #include <cmath>
+#include <highfive/H5File.hpp>
 
-Matrix Matrix::diagmat(vec vector) const {
+
+Matrix Matrix::diagmat(const vec& vector) {
   Matrix result = Matrix::Zeros(vector.size(), vector.size());
   for (int i = 0; i < vector.size(); i++ ) {
     result(i, i) = vector[i];
@@ -10,7 +12,7 @@ Matrix Matrix::diagmat(vec vector) const {
 }
 
 
-Matrix Matrix::diagmat(Matrix mat) const {
+Matrix Matrix::diagmat(const Matrix& mat) {
   Matrix result = Matrix::Zeros(mat.get_num_rows(), mat.get_num_cols());
   for (int i = 0; i < std::min(mat.get_num_rows(), mat.get_num_cols()); i++) {
     result(i, i) = mat(i, i);
@@ -42,4 +44,66 @@ Matrix Matrix::transpose() const {
   }
 
   return result;
+}
+
+void Matrix::save_hdf5(const Matrix& data, 
+                        const std::string& filename,
+                       const std::string& dataset_name)
+{
+  int rows = data.get_num_rows();
+  int cols = data.get_num_cols();
+
+  // get file, might need to create it
+  HighFive::File file(filename, HighFive::File::ReadWrite | HighFive::File::Create);
+
+  // need to use hsize_t type from HDF5
+  std::vector<hsize_t> dimensions = { 
+      static_cast<hsize_t>(rows),
+      static_cast<hsize_t>(cols)
+  };
+
+  // Convert flat to 2D
+  std::vector<vec> reshaped(rows, vec(cols));
+    const vec& flat = data.get_data();
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            reshaped[i][j] = flat[i * cols + j];
+        }
+    }
+
+  // Create dataset
+  HighFive::DataSet dataset = file.createDataSet<double>(
+      dataset_name,
+      HighFive::DataSpace({static_cast<hsize_t>(rows),
+                           static_cast<hsize_t>(cols)}));
+
+    // add matrix data to the dataset
+  dataset.write(reshaped);
+}
+
+void Matrix::save_hdf5(const vec& data, 
+                        const std::string& filename,
+                        const std::string& dataset_name)
+{
+  int size = data.size();
+  // get file, might need to create it
+  HighFive::File file(filename, HighFive::File::ReadWrite | HighFive::File::Create);
+
+  // need to use hsize_t type from HDF5
+  std::vector<hsize_t> dimensions = {
+    static_cast<hsize_t>(size)
+    };
+
+  // need to convert to column vector
+  std::vector<vec> column_vec(size, vec(1));
+  for (int i = 0; i < size; i++) {
+      column_vec[i][0] = data[i];
+  }
+
+  HighFive::DataSet dataset = file.createDataSet<double>(
+      dataset_name, HighFive::DataSpace({size, 1})
+  );
+
+  // add vec data to the dataset
+  dataset.write(column_vec);
 }
