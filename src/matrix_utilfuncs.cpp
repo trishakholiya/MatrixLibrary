@@ -95,7 +95,7 @@ void Matrix::save_hdf5(const vec& data,
     };
 
   // need to convert to column vector
-  std::vector<std::vector<double>> column_vec(size, std::vector<double>(1));
+  std::vector<vec> column_vec(size, vec(1));
   for (int i = 0; i < size; i++) {
       column_vec[i][0] = data[i];
   }
