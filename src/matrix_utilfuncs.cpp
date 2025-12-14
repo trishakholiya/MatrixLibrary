@@ -85,7 +85,7 @@ void Matrix::save_hdf5(const vec& data,
                         const std::string& filename,
                         const std::string& dataset_name)
 {
-  int size = data.size();
+  size_t size = data.size();
   // get file, might need to create it
   HighFive::File file(filename, HighFive::File::ReadWrite | HighFive::File::Create);
 
@@ -96,7 +96,7 @@ void Matrix::save_hdf5(const vec& data,
 
   // need to convert to column vector
   std::vector<vec> column_vec(size, vec(1));
-  for (int i = 0; i < size; i++) {
+  for (size_t i = 0; i < size; i++) {
       column_vec[i][0] = data[i];
   }
 
