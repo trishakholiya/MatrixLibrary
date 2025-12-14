@@ -3,57 +3,19 @@
 #include <tuple> // for std::tuple in parameterized mul test
 #include "matrix.h"
 #include "test_helpers.hpp"
-#include <fstream> // for getting the accuracy/error output in a file
 
 // file includes tests for add, subract, multiply, multiply by scalar
 
-// creates 2 random 3 x 3 matrices using Matrix lib, adds them.
-// converts same matrices to armadillo and adds, then compares the results.
-TEST(MatrixArithmetic, AddMatchesArmadillo) {
-    Matrix A = Matrix::Random(3,3);
-    Matrix B = Matrix::Random(3,3);
-
-    Matrix C_mat_lib = A + B;
-
-    arma::mat A_ref = to_arma(A);
-    arma::mat B_ref = to_arma(B);
-    arma::mat C_ref = A_ref + B_ref;
-
-    EXPECT_TRUE(mats_close(C_mat_lib, C_ref));
-}
-
-// same but for multiplication of 2 matrices
-TEST(MatrixArithmetic, MulMatchesArmadillo) {
-    Matrix A = Matrix::Random(2,3);
-    Matrix B = Matrix::Random(3,4);
-
-    Matrix C_mat_lib = A * B;
-
-    arma::mat A_ref = to_arma(A);
-    arma::mat B_ref = to_arma(B);
-    arma::mat C_ref = A_ref * B_ref;
-
-    EXPECT_TRUE(mats_close(C_mat_lib, C_ref));
-}
-
-// same but for multiplying matrix by a scalar
-TEST(MatrixArithmetic, ScalarMulMatchesArmadillo) {
-    Matrix A = Matrix::Random(3,3);
-    double s = -2.5;
-
-    Matrix C_mat_lib = A * s;
-    arma::mat C_ref = to_arma(A) * s;
-
-    EXPECT_TRUE(mats_close(C_mat_lib, C_ref));
-}
+static const char* BASIC_CSV = "basic_accuracy.csv";
 
 // ##### PARAMETERIZED TESTS FOR DIFFERENT SIZES #####
 
 // fixture (test class) that holds the int parameter (the matrix size n)
-class MatrixAddSizeTest : public ::testing::TestWithParam<int> {};
+class MatrixSizeTest : public ::testing::TestWithParam<int> {};
 
-// runs once for each n instantiated below
-TEST_P(MatrixAddSizeTest, AddMatchesArmadilloForSize) {
+// creates 2 random n x n matrices using Matrix lib, adds them.
+// converts same matrices to armadillo and adds, then compares the results.
+TEST_P(MatrixSizeTest, AddMatchesArmadilloForSize) {
     int n = GetParam();  // current size being tested
 
     Matrix A = Matrix::Random(n, n);
@@ -67,21 +29,71 @@ TEST_P(MatrixAddSizeTest, AddMatchesArmadilloForSize) {
 
     double max_err = max_abs_error(C_mat_lib, C_ref);
 
-    std::cout << "[Add] n = " << n << "  max_abs_error = " << max_err << "\n";
-
-    // append output to file
-    std::ofstream out("add_accuracy.txt", std::ios::app);
-    out << n << " " << max_err << "\n";
+    append_csv(BASIC_CSV,
+               "Arithmetic",
+               "add",
+               n, n,
+               n, n,
+               max_err);
 
     EXPECT_TRUE(mats_close(C_mat_lib, C_ref))
         << "Addition failed for size " << n << "x" << n;
 }
 
-// tell GoogleTest which sizes to run this test for
-// i.e. run MatrixAddSizeTest.AddMatchesArmadilloForSize() once for each n in {1, 2, 3, 5, 10}
+// same structure but for subtraction
+TEST_P(MatrixSizeTest, SubMatchesArmadilloForSize) {
+    int n = GetParam();  // current size being tested
+
+    Matrix A = Matrix::Random(n, n);
+    Matrix B = Matrix::Random(n, n);
+
+    Matrix C_mat_lib = A - B;
+
+    arma::mat A_ref = to_arma(A);
+    arma::mat B_ref = to_arma(B);
+    arma::mat C_ref = A_ref - B_ref;
+
+    double max_err = max_abs_error(C_mat_lib, C_ref);
+
+    append_csv(BASIC_CSV,
+               "Arithmetic",
+               "sub",
+               n, n,
+               n, n,
+               max_err);
+
+    EXPECT_TRUE(mats_close(C_mat_lib, C_ref))
+        << "Subtraction failed for size " << n << "x" << n;
+}
+
+// same structure but for multiplying matrix by a scalar
+TEST_P(MatrixSizeTest, ScalarMulMatchesArmadilloForSize) {
+    int n = GetParam();  // current size being tested
+    double s = -2.5;
+
+    Matrix A = Matrix::Random(n, n);
+
+    Matrix C_mat_lib = A * s;
+    arma::mat C_ref = to_arma(A) * s;
+
+    double max_err = max_abs_error(C_mat_lib, C_ref);
+
+    append_csv(BASIC_CSV,
+               "Arithmetic",
+               "scalar_mul",
+               n, n,
+               0, 0,
+               max_err);
+
+    EXPECT_TRUE(mats_close(C_mat_lib, C_ref))
+        << "Scalar multiply failed for size " << n << "x" << n;
+}
+
+// tell GoogleTest which sizes to run these tests for
+// i.e. run MatrixSizeTest.<test>() once for each n in {1, 2, 3, 5, 10}
 INSTANTIATE_TEST_SUITE_P(
-    AddSizes,              // prefix printed in test output
-    MatrixAddSizeTest,     // test class
+    Sizes,                 // prefix printed in test output
+    MatrixSizeTest,        // test class
     ::testing::Values(1, 2, 3, 5, 10) // sizes to test
 );
 
@@ -91,6 +103,7 @@ using ShapeParam = std::tuple<int, int, int, int>;
 // test class that receives shapeparam for each run
 class MatrixMulShapeTest : public ::testing::TestWithParam<ShapeParam> {};
 
+// same but for multiplication of 2 matrices
 TEST_P(MatrixMulShapeTest, MulMatchesArmadilloForShape) {
     auto [r1, c1, r2, c2] = GetParam();  // unpack tuple (rows_A, cols_A, rows_B, cols_B)
 
@@ -109,21 +122,17 @@ TEST_P(MatrixMulShapeTest, MulMatchesArmadilloForShape) {
     // compute max per-element absolute error
     double max_err = max_abs_error(C_mat_lib, C_ref);
 
-    // print it to see accuracy by shape
-    std::cout << "[Mul] "
-    << r1 << "x" << c1 << " * " << r2 << "x" << c2
-    << "  max_abs_error = " << max_err << "\n";
-
-    // append shape and error to file
-    std::ofstream out("mul_accuracy.txt", std::ios::app);
-    out << r1 << " " << c1 << " "
-        << r2 << " " << c2 << " "
-        << max_err << "\n";
+    append_csv(BASIC_CSV,
+               "Arithmetic",
+               "mul",
+               r1, c1,
+               r2, c2,
+               max_err);
 
     EXPECT_TRUE(mats_close(C_mat_lib, C_ref))
-    << "Multiply failed for shapes "
-    << r1 << "x" << c1 << " * " << r2 << "x" << c2
-    << "  (max_abs_error = " << max_err << ")";
+        << "Multiply failed for shapes "
+        << r1 << "x" << c1 << " * " << r2 << "x" << c2
+        << "  (max_abs_error = " << max_err << ")";
 }
 
 // list of shapes to test
@@ -135,6 +144,6 @@ INSTANTIATE_TEST_SUITE_P(
         ShapeParam{2, 3, 3, 4}, // wide * tall
         ShapeParam{5, 1, 1, 7}, // column * row
         ShapeParam{1, 5, 5, 1}, // row * column
-        ShapeParam{3, 3, 3, 3} // another square
+        ShapeParam{3, 3, 3, 3}  // another square
     )
 );

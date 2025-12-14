@@ -4,6 +4,9 @@ project (MatrixLibrary VERSION 1.0.0
   DESCRIPTION "Matrix Library with Linear Algebra Features"
   LANGUAGES CXX)
 
+option(MATRIXLIBRARY_BUILD_TESTS "Build unit tests" OFF)
+option(MATRIXLIBRARY_BUILD_BENCHMARKS "Build benchmarks" OFF)
+
 # Compiler requirements
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -15,14 +18,14 @@ find_package(Armadillo REQUIRED)
 find_package(Eigen3 3.4 REQUIRED NO_MODULE)
 find_package(BLAS REQUIRED)
 find_package(LAPACK REQUIRED)
-find_package(Threads REQUIRED) # for google benchmarking
 find_package(HDF5 REQUIRED COMPONENTS C CXX)
-#find_package(chemfiles REQUIRED)
 
 # Library
 add_library(MatrixLibrary)
 
 add_library(MatrixLibrary::MatrixLibrary ALIAS MatrixLibrary)
+
+target_compile_features(MatrixLibrary PUBLIC cxx_std_17)
 
 target_sources(
   MatrixLibrary
@@ -48,7 +51,6 @@ target_link_libraries(MatrixLibrary
     Eigen3::Eigen
     armadillo
     nlohmann_json::nlohmann_json
-    #chemfiles
     BLAS::BLAS
     LAPACK::LAPACK
     HighFive::HighFive
@@ -58,73 +60,65 @@ target_link_libraries(MatrixLibrary
 
 add_compile_options(-Wa,--gsframe=no) # suppresses a useless warning on x86 machines
 
-# executables
-add_executable(main src/main.cpp) # need to remove for actual library when we're done testing
-target_link_libraries(main 
-  PRIVATE 
-    MatrixLibrary
-    HighFive::HighFive 
-    ${HDF5_C_LIBRARIES} 
-    ${HDF5_CXX_LIBRARIES}
-)
 
-# Google Test
-include(FetchContent)
-FetchContent_Declare(
-  googletest
-  URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
-)
-FetchContent_MakeAvailable(googletest)
+###########################
+# TESTING AND BENCHMARKING
+###########################
 
-add_executable(my_tests
-    test/test_matrix_arithmetic.cpp
-    test/test_matrix_basics.cpp
-    #test/test_matrix_eigsym.cpp
-    )
+if (MATRIXLIBRARY_BUILD_TESTS)
+  # Google Test
+  include(FetchContent)
+  FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
+  )
+  FetchContent_MakeAvailable(googletest)
 
-target_link_libraries(my_tests PRIVATE MatrixLibrary gtest_main)
+  add_executable(my_tests
+      test/test_matrix_arithmetic.cpp
+      test/test_matrix_basics.cpp
+      #test/test_matrix_eigsym.cpp
+      )
 
-enable_testing()
-add_test(NAME my_tests COMMAND my_tests)
+  target_link_libraries(my_tests PRIVATE MatrixLibrary gtest_main)
 
-# Google Benchmark
-FetchContent_Declare(
-  googlebenchmark
-  URL https://github.com/google/benchmark/archive/refs/tags/v1.9.0.zip
-)
-FetchContent_MakeAvailable(googlebenchmark)
+  enable_testing()
+  add_test(NAME my_tests COMMAND my_tests)
+endif()
 
-add_executable(matrix_benchmarks
-  benchmarking/benchmark_main.cpp
-  benchmarking/benchmark_addition.cpp
-  benchmarking/benchmark_multiplication.cpp
-  benchmarking/benchmark_initialization.cpp
-  benchmarking/benchmark_transpose.cpp
-  benchmarking/benchmark_accessor.cpp
-  benchmarking/benchmark_eigsym.cpp
-)
+if (MATRIXLIBRARY_BUILD_BENCHMARKS)
+  # Google Benchmark
+  include(FetchContent)
+  find_package(Threads REQUIRED)
 
-target_link_libraries(matrix_benchmarks 
-  PRIVATE MatrixLibrary 
-  benchmark::benchmark
-  Threads::Threads)
+  set(BENCHMARK_ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+  set(BENCHMARK_ENABLE_GTEST_TESTS OFF CACHE BOOL "" FORCE)
 
-# benchmarking accuracy
-add_executable(bench_accuracy benchmarking/benchmark_accuracy.cpp)
+  FetchContent_Declare(
+    googlebenchmark
+    URL https://github.com/google/benchmark/archive/refs/tags/v1.9.0.zip
+  )
+  FetchContent_MakeAvailable(googlebenchmark)
 
-target_link_libraries(bench_accuracy PRIVATE
-    MatrixLibrary
-)
+  add_executable(matrix_benchmarks
+    benchmarking/benchmark_main.cpp
+    benchmarking/benchmark_addition.cpp
+    benchmarking/benchmark_multiplication.cpp
+    benchmarking/benchmark_initialization.cpp
+    benchmarking/benchmark_transpose.cpp
+    benchmarking/benchmark_accessor.cpp
+    benchmarking/benchmark_eigsym.cpp
+  )
 
-target_include_directories(bench_accuracy PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/test
-)
+  target_link_libraries(matrix_benchmarks 
+    PRIVATE MatrixLibrary 
+    benchmark::benchmark
+    Threads::Threads)
+endif()
 
-################
+##########################
 # BEGIN INSTALL SECTION
-#################
-
-include(GNUInstallDirs)
+##########################
 
 install(TARGETS MatrixLibrary
 				EXPORT MatrixLibraryTargets

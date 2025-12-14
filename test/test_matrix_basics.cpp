@@ -1,9 +1,12 @@
 #include <gtest/gtest.h>
+#include <tuple> // for parameterized transpose test
 #include "matrix.h"
 #include "test_helpers.hpp"
 
-// this file includes tests for constructors, 
+// this file includes tests for constructors,
 // accessors, ==, transpose, is_symmetric
+
+static const char* BASIC_CSV = "basic_accuracy.csv";
 
 // sizes and initialization (no Armadillo comparison for this part)
 
@@ -34,7 +37,13 @@ TEST(MatrixBasics, FromVectorConstructorMatchesArmadillo) {
           << 4.0 << 5.0 << 6.0 << arma::endr;
 
     double max_err = max_abs_error(M, A_ref);
-    std::cout << "[Basics] FromVector max_abs_error = " << max_err << "\n";
+
+    append_csv(BASIC_CSV,
+               "Basics",
+               "ctor_from_vector",
+               2, 3,
+               2, 3,
+               max_err);
 
     EXPECT_TRUE(mats_close(M, A_ref));
 }
@@ -103,19 +112,45 @@ TEST(MatrixBasics, ElementAccessAndEquality) {
 
 // transpose vs Armadillo
 
-TEST(MatrixBasics, TransposeMatchesArmadillo) {
-    Matrix A = Matrix::Random(2, 3);
+// type used to describe matrix shapes (rows, cols)
+using TransposeParam = std::tuple<int, int>;
+
+// test class that receives transposeparam for each run
+class MatrixTransposeTest : public ::testing::TestWithParam<TransposeParam> {};
+
+TEST_P(MatrixTransposeTest, TransposeMatchesArmadilloForShape) {
+    auto [r, c] = GetParam();
+
+    Matrix A = Matrix::Random(r, c);
 
     Matrix At_mat_lib = A.transpose();
     arma::mat A_ref = to_arma(A);
     arma::mat At_ref = A_ref.t();
 
     double max_err = max_abs_error(At_mat_lib, At_ref);
-    std::cout << "[Basics] Transpose 2x3 -> 3x2  max_abs_error = "
-              << max_err << "\n";
 
-    EXPECT_TRUE(mats_close(At_mat_lib, At_ref));
+    append_csv(BASIC_CSV,
+               "Basics",
+               "transpose",
+               r, c,
+               c, r,
+               max_err);
+
+    EXPECT_TRUE(mats_close(At_mat_lib, At_ref))
+        << "Transpose failed for shape " << r << "x" << c;
 }
+
+INSTANTIATE_TEST_SUITE_P(
+    TransposeShapes,
+    MatrixTransposeTest,
+    ::testing::Values(
+        TransposeParam{2, 3},
+        TransposeParam{3, 2},
+        TransposeParam{1, 5},
+        TransposeParam{5, 1},
+        TransposeParam{4, 4}
+    )
+);
 
 // symmetry check
 
@@ -127,7 +162,7 @@ TEST(MatrixBasics, IsSymmetricBehavior) {
 
     EXPECT_TRUE(S.is_symmetric(1e-12));
 
-    // break symmetry by a bit above tolerance to check it 
+    // break symmetry by a bit above tolerance to check it
     // doesn't regiter as symmetric
     S(0,2) = -1.0 + 1e-3; // diff = 1e-3
 

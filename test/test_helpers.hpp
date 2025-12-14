@@ -2,6 +2,12 @@
 
 #include <armadillo>
 #include "matrix.h"
+#include <fstream>
+#include <iomanip>
+#include <cmath>
+#include <algorithm>
+#include <stdexcept>
+#include <random>
 
 inline arma::mat to_arma(const Matrix& M) {
     arma::mat A(M.get_num_rows(), M.get_num_cols());
@@ -90,3 +96,50 @@ inline Matrix random_symmetric_matrix(int n) {
     }
     return S;
 }
+
+// append one row to a CSV file for accuracy tables
+inline void append_csv(
+    const std::string& filename,
+    const std::string& test,
+    const std::string& op,
+    int rowsA, int colsA,
+    int rowsB, int colsB,
+    double max_abs_error
+) {
+    std::ofstream out(filename, std::ios::app);
+    out << test << ","
+        << op << ","
+        << rowsA << ","
+        << colsA << ","
+        << rowsB << ","
+        << colsB << ","
+        << std::setprecision(16) << max_abs_error
+        << "\n";
+}
+
+/*
+
+inline Matrix deterministic_matrix(int rows, int cols, unsigned seed) {
+    std::mt19937 gen(seed);
+    std::uniform_real_distribution<double> dist(0.0, 1.0);
+
+    vec data;
+    data.reserve(static_cast<size_t>(rows) * static_cast<size_t>(cols));
+    for (int i = 0; i < rows * cols; ++i) {
+        data.push_back(dist(gen));
+    }
+    return Matrix(std::move(data), rows, cols);
+}
+
+inline Matrix deterministic_symmetric_matrix(int n, unsigned seed) {
+    Matrix A = deterministic_matrix(n, n, seed);
+    Matrix S(n, n);
+
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < n; ++j) {
+            S(i, j) = 0.5 * (A(i, j) + A(j, i));
+        }
+    }
+    return S;
+}
+*/
