@@ -116,30 +116,3 @@ inline void append_csv(
         << std::setprecision(16) << max_abs_error
         << "\n";
 }
-
-/*
-
-inline Matrix deterministic_matrix(int rows, int cols, unsigned seed) {
-    std::mt19937 gen(seed);
-    std::uniform_real_distribution<double> dist(0.0, 1.0);
-
-    vec data;
-    data.reserve(static_cast<size_t>(rows) * static_cast<size_t>(cols));
-    for (int i = 0; i < rows * cols; ++i) {
-        data.push_back(dist(gen));
-    }
-    return Matrix(std::move(data), rows, cols);
-}
-
-inline Matrix deterministic_symmetric_matrix(int n, unsigned seed) {
-    Matrix A = deterministic_matrix(n, n, seed);
-    Matrix S(n, n);
-
-    for (int i = 0; i < n; ++i) {
-        for (int j = 0; j < n; ++j) {
-            S(i, j) = 0.5 * (A(i, j) + A(j, i));
-        }
-    }
-    return S;
-}
-*/
