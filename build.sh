@@ -1,6 +1,5 @@
 #!/bin/sh
 
-mkdir -p build
-cd build 
-cmake .. -DCMAKE_BUILD_TYPE=Release # changed from Debug to optimize benchmarking 
-make -j4
+# Library only
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j4
