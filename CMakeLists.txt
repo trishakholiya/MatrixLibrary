@@ -77,7 +77,7 @@ if (MATRIXLIBRARY_BUILD_TESTS)
   add_executable(my_tests
       test/test_matrix_arithmetic.cpp
       test/test_matrix_basics.cpp
-      #test/test_matrix_eigsym.cpp
+      test/test_matrix_eigsym.cpp
       )
 
   target_link_libraries(my_tests PRIVATE MatrixLibrary gtest_main)
@@ -114,6 +114,18 @@ if (MATRIXLIBRARY_BUILD_BENCHMARKS)
     PRIVATE MatrixLibrary 
     benchmark::benchmark
     Threads::Threads)
+
+    # benchmarking eigsym accuracy (data generator, not Google Benchmark)
+    add_executable(bench_eigsym_accuracy
+      benchmarking/benchmark_eigsym_accuracy.cpp
+    )
+
+    target_link_libraries(bench_eigsym_accuracy PRIVATE MatrixLibrary)
+
+    target_include_directories(bench_eigsym_accuracy PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR}/test
+    )
+
 endif()
 
 ##########################
