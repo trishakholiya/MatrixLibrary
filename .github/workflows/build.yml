@@ -1,0 +1,24 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Make scripts executable
+        run: chmod +x build_testing.sh
+
+      - name: Configure and Build
+        run: ./build_testing.sh
+
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+
