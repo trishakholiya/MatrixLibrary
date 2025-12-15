@@ -84,7 +84,9 @@ if (MATRIXLIBRARY_BUILD_TESTS)
   target_link_libraries(matrix_tests PRIVATE MatrixLibrary GTest::gtest_main)
 
   enable_testing()
-  add_test(NAME matrix_tests COMMAND matrix_tests)
+
+  include(GoogleTest)
+  gtest_discover_tests(matrix_tests)
 
   # eigsym accuracy data generator (NOT a unit test)
   add_executable(bench_eigsym_accuracy
@@ -97,6 +99,7 @@ if (MATRIXLIBRARY_BUILD_TESTS)
     ${CMAKE_CURRENT_SOURCE_DIR}/test
   )
 endif()
+
 
 if (MATRIXLIBRARY_BUILD_BENCHMARKS)
   # Google Benchmark
