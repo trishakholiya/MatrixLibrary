@@ -1,4 +1,4 @@
-name: Build and Test
+name: Build and Test (Container)
 
 on:
   push:
@@ -10,15 +10,16 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
+    container:
+      image: ghcr.io/berkeley-chem-179-279/dev:latest
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Make scripts executable
-        run: chmod +x build_testing.sh
-
-      - name: Configure and Build
-        run: ./build_testing.sh
+      - name: Build
+        run: |
+          chmod +x build_testing.sh
+          ./build_testing.sh
 
       - name: Test
         run: ctest --test-dir build --output-on-failure
-
