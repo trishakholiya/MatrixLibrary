@@ -66,24 +66,36 @@ add_compile_options(-Wa,--gsframe=no) # suppresses a useless warning on x86 mach
 ###########################
 
 if (MATRIXLIBRARY_BUILD_TESTS)
-  # Google Test
   include(FetchContent)
+
+  # GoogleTest
   FetchContent_Declare(
     googletest
     URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
   )
   FetchContent_MakeAvailable(googletest)
 
-  add_executable(my_tests
-      test/test_matrix_arithmetic.cpp
-      test/test_matrix_basics.cpp
-      test/test_matrix_eigsym.cpp
-      )
+  add_executable(matrix_tests
+    test/test_matrix_arithmetic.cpp
+    test/test_matrix_basics.cpp
+    test/test_matrix_eigsym.cpp
+  )
 
-  target_link_libraries(my_tests PRIVATE MatrixLibrary gtest_main)
+  target_link_libraries(matrix_tests PRIVATE MatrixLibrary GTest::gtest_main)
 
   enable_testing()
-  add_test(NAME my_tests COMMAND my_tests)
+  add_test(NAME matrix_tests COMMAND matrix_tests)
+
+  # eigsym accuracy data generator (NOT a unit test)
+  add_executable(bench_eigsym_accuracy
+    test/benchmark_eigsym_accuracy.cpp
+  )
+
+  target_link_libraries(bench_eigsym_accuracy PRIVATE MatrixLibrary)
+
+  target_include_directories(bench_eigsym_accuracy PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/test
+  )
 endif()
 
 if (MATRIXLIBRARY_BUILD_BENCHMARKS)
@@ -114,18 +126,6 @@ if (MATRIXLIBRARY_BUILD_BENCHMARKS)
     PRIVATE MatrixLibrary 
     benchmark::benchmark
     Threads::Threads)
-
-    # benchmarking eigsym accuracy (data generator, not Google Benchmark)
-    add_executable(bench_eigsym_accuracy
-      benchmarking/benchmark_eigsym_accuracy.cpp
-    )
-
-    target_link_libraries(bench_eigsym_accuracy PRIVATE MatrixLibrary)
-
-    target_include_directories(bench_eigsym_accuracy PRIVATE
-      ${CMAKE_CURRENT_SOURCE_DIR}/test
-    )
-
 endif()
 
 ##########################
