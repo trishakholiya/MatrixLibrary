@@ -65,7 +65,7 @@ To run unit tests:
 ## Usage
 MatrixLibrary is intended primarily for educational and experimental use. It is designed to be compatible with existing Homework 3 code that previously relied on Armadillo.
 
-To use this library in your local repo, add the following lines to the CMake File:
+To use this library in your local repo, add the following lines to the CMake File. The following example is for an executable called hw_3_1.
 
 ```cmake
 include(FetchContent)
@@ -77,6 +77,8 @@ FetchContent_Declare(
 )
 
 FetchContent_MakeAvailable(MatrixLibrary)
+
+target_link_libraries(hw_3_1 PRIVATE MatrixLibrary::MatrixLibrary)
 ```
 
 Then, the matrix class can be used by adding `#include <matrix.h>`
