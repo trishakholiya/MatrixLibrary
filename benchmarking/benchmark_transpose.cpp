@@ -2,6 +2,7 @@
 #include "matrix.h"
 #include <armadillo>
 
+// Benchmarking matrix transposition in Matrix Class
 static void Transpose_MatrixClass(benchmark::State& state) {
     int n = state.range(0);
     Matrix A = Matrix::Random(n, n);
@@ -10,23 +11,22 @@ static void Transpose_MatrixClass(benchmark::State& state) {
       Matrix C = A.transpose();
       benchmark::DoNotOptimize(C);
     }
-
     state.SetItemsProcessed(state.iterations() * n * n);
 }
 
+// Benchmarking matrix transposition in Armadillo
 static void Transpose_Armadillo(benchmark::State& state) {
     int n = state.range(0);
     arma::mat A = arma::randu<arma::mat>(n, n);
   
     for (auto _ : state) {
       arma::mat C = A.t();
-      benchmark::DoNotOptimize(C.memptr());
+      benchmark::DoNotOptimize(C.memptr()); // needs to be pointer to memory NOT arma object
     }
-
     state.SetItemsProcessed(state.iterations() * n * n);
 }
 
-// benchmark for differenct sizes
+// Run benchmarking for different matrix sizes
 BENCHMARK(Transpose_MatrixClass)
   ->Arg(10)
   ->Arg(100)

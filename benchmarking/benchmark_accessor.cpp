@@ -2,9 +2,9 @@
 #include "matrix.h"
 #include <armadillo>
 
+// Benchmarking the accessing operator in Matrix Class
 static void Accessor_MatrixClass(benchmark::State& state) {
-  int n = state.range(0);
-
+  int n = state.range(0); 
   Matrix A = Matrix::Zeros(n, n);
 
   for (auto _ : state) {
@@ -16,10 +16,10 @@ static void Accessor_MatrixClass(benchmark::State& state) {
     }
     benchmark::DoNotOptimize(sum);
   }
-
   state.SetItemsProcessed(state.iterations() * n * n);
 }
 
+// Benchmarking the accessing operator in Armadillo
 static void Accessor_Armadillo(benchmark::State& state) {
   int n = state.range(0);
   arma::mat A = arma::zeros(n, n);
@@ -33,12 +33,10 @@ static void Accessor_Armadillo(benchmark::State& state) {
     }
     benchmark::DoNotOptimize(sum);
   }
-
   state.SetItemsProcessed(state.iterations() * n * n);
 }
 
-
-// benchmark for differenct sizes
+// Run benchmarking for different matrix sizes
 BENCHMARK(Accessor_MatrixClass)
   ->Arg(10)
   ->Arg(100)
