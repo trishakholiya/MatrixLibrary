@@ -1,35 +1,40 @@
 #include "matrix.h"
 #include <algorithm>
 
+// Constructs an unitialized matrix of given dimension
 Matrix::Matrix(int rows, int cols) : num_rows(rows), num_cols(cols), size(rows*cols), matrix(size) {}
 
-// empty constructor
+// Default Constructor, creates a 0x0 matrix
 Matrix::Matrix() : num_rows(0), num_cols(0), size(0) {}
 
-// constructor from FLAT vector
-Matrix::Matrix(const vec& values, int rows, int cols) // l-value
+// Construct a matrix from an existing flat vector (l-value reference).
+Matrix::Matrix(const vec& values, int rows, int cols)
   : num_rows(rows), 
     num_cols(cols), 
     size(rows*cols)
 {
-  // make sure this matrix can be constructed
+  // Validate Dimensions
   if (values.size() != rows * cols) {
       throw InvalidMatrixSize("Flat vector size does not match requested matrix dimensions");
   }
-
   matrix = values;
 }
 
-Matrix::Matrix(vec&& values, int rows, int cols) // r-value
+// Construct a matrix from an existing flat vector (r-value reference).
+Matrix::Matrix(vec&& values, int rows, int cols)
   : num_rows(rows), 
     num_cols(cols), 
     size(rows*cols),
     matrix(std::move(values)) {
-    // make sure this matrix can be constructed
+    // Validate Dimensions
     if (matrix.size() != rows * cols) {
       throw InvalidMatrixSize("Flat vector size does not match requested matrix dimensions");
     }
   }
+
+// -------------------------------------------------------------------
+// Factory Methods to Fill Matrix Values
+// -------------------------------------------------------------------
 
 Matrix Matrix::Ones(int rows, int cols) {
   Matrix M(rows, cols);
@@ -62,7 +67,9 @@ Matrix Matrix::Identity(int n) {
   return M;
 }
 
-// Accessors (getters)
+// -------------------------------------------------------------------
+// Accessors (const getters)
+// -------------------------------------------------------------------
 int Matrix::get_num_rows() const
 {
   return this->num_rows;

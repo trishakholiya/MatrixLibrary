@@ -4,7 +4,8 @@
 #include <cmath>
 #include <limits>
 
-// operator to access the matrix so you can call matrix(1, 1)
+// Overloaded Accessor Operator
+// Can get a matrix element by calling matrix(1, 2)
 double& Matrix::operator()(int x, int y) {
   if (x < 0 || x >= num_rows || y < 0 || y >= num_cols) {
     throw std::out_of_range("Matrix index out of range");
@@ -12,7 +13,8 @@ double& Matrix::operator()(int x, int y) {
   return matrix[x * num_cols + y];
 }
 
-// operator to access the matrix so you can call matrix(1, 1)
+// Overloaded Accessor Operator (const)
+// Can get a matrix element by calling matrix(1, 2)
 const double& Matrix::operator()(int x, int y) const {
   if (x < 0 || x >= num_rows || y < 0 || y >= num_cols) {
     throw std::out_of_range("Matrix index out of range");
@@ -20,7 +22,7 @@ const double& Matrix::operator()(int x, int y) const {
   return matrix[x * num_cols + y];
 }
 
-// equal to a matrix operator
+// Overloaded Equal Operator
 bool Matrix::operator==(const Matrix& other) const {
   if (num_rows != other.num_rows || num_cols != other.num_cols) {
     return false;
@@ -38,7 +40,7 @@ bool Matrix::operator==(const Matrix& other) const {
   return true;
 }
 
-// overload addition operator
+// Overloaded Addition Operator
 Matrix Matrix::operator+(const Matrix& other) const {
 
   if (num_rows != other.num_rows || num_cols != other.num_cols) {
@@ -58,7 +60,7 @@ Matrix Matrix::operator+(const Matrix& other) const {
   return Matrix(result, num_rows, num_cols);
 }
 
-// overload subtraction operator
+// Overloaded Subtraction Operator
 Matrix Matrix::operator-(const Matrix& other) const {
   vec result(size);
 
@@ -73,6 +75,7 @@ Matrix Matrix::operator-(const Matrix& other) const {
   return Matrix(result, num_rows, num_cols);
 }
 
+// Overloaded Matrix-Matrix Multiplication Operator
 Matrix Matrix::operator*(const Matrix& other) const {
   if (this->num_cols != other.num_rows) {
       throw InvalidMatrixSize("Matrix dimensions incompatible for multiplication");
@@ -98,6 +101,7 @@ Matrix Matrix::operator*(const Matrix& other) const {
   return result;
 }
 
+// Overloaded Matrix-Scalar Operator
 Matrix Matrix::operator*(double s) const {
   vec result_vec(get_size());
 
