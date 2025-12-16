@@ -12,8 +12,17 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(GNUInstallDirs)
 
+# fetch content for nlohmann_json
+include(FetchContent)
+
+FetchContent_Declare(
+  nlohmann_json
+  URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+)
+
+FetchContent_MakeAvailable(nlohmann_json)
+
 # Find libraries
-find_package(nlohmann_json REQUIRED)
 find_package(Armadillo REQUIRED)
 find_package(Eigen3 3.4 REQUIRED NO_MODULE)
 find_package(BLAS REQUIRED)
