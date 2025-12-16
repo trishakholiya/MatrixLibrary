@@ -47,15 +47,6 @@ report/         # Final Project Report, Presentation, and Doxygen PDF
 ## Build Instructions
 MatrixLibrary uses CMake for configuration and builds.
 
-### Requirements
-- C++17 compatible compiler
-- CMake ≥ 3.31
-- Armadillo (used for validation and comparison)
-- Eigen, BLAS, LAPACK
-- HighFive / HDF5
-- GoogleTest (optional, for unit tests)
-- Google Benchmark (optional, for runtime benchmarks)
-
 ### Build Example
 ```bash
 ./build
