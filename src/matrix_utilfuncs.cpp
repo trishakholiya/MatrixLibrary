@@ -2,7 +2,8 @@
 #include <cmath>
 #include <highfive/H5File.hpp>
 
-
+// Build diagonal matrix from a vector
+// Result is an n x n matrix with vector[i] on the diagonal
 Matrix Matrix::diagmat(const vec& vector) {
   Matrix result = Matrix::Zeros(vector.size(), vector.size());
   for (int i = 0; i < vector.size(); i++ ) {
@@ -11,7 +12,8 @@ Matrix Matrix::diagmat(const vec& vector) {
   return result;
 }
 
-
+// Build diagonal matrix by extracting the diagonal of input matrix
+// Result is same shape as input but with only diagonal entries remaining
 Matrix Matrix::diagmat(const Matrix& mat) {
   Matrix result = Matrix::Zeros(mat.get_num_rows(), mat.get_num_cols());
   for (int i = 0; i < std::min(mat.get_num_rows(), mat.get_num_cols()); i++) {
@@ -20,6 +22,8 @@ Matrix Matrix::diagmat(const Matrix& mat) {
   return result;
 }
 
+// Check if matrix is symmetric within tolerance tol
+// Not symmetric if matrix is not square
 bool Matrix::is_symmetric(double tol = 1e-12) const {
   if (num_rows != num_cols)
       return false;
@@ -33,7 +37,7 @@ bool Matrix::is_symmetric(double tol = 1e-12) const {
   return true;
 }
 
-// transpose matrix
+// Transpose matrix
 Matrix Matrix::transpose() const {
   Matrix result(num_cols, num_rows);
 
@@ -46,6 +50,9 @@ Matrix Matrix::transpose() const {
   return result;
 }
 
+// Save Matrix to HDF5 file (dataset_name) using HighFive
+// Because Matrix stores elements as a flat vector, we reshape into a 2D
+// container before writing
 void Matrix::save_hdf5(const Matrix& data, 
                         const std::string& filename,
                        const std::string& dataset_name)
