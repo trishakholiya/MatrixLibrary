@@ -9,6 +9,7 @@
 #include <stdexcept>
 #include <random>
 
+// convert MatrixLibrary matrix to Armadillo format
 inline arma::mat to_arma(const Matrix& M) {
     arma::mat A(M.get_num_rows(), M.get_num_cols());
     for (int i = 0; i < M.get_num_rows(); ++i) {
@@ -19,6 +20,7 @@ inline arma::mat to_arma(const Matrix& M) {
     return A;
 }
 
+// convert Armadillo matrix to MatrixLibrary matrix
 inline Matrix from_arma(const arma::mat& A) {
     vec data;
     data.reserve(A.n_rows * A.n_cols);
@@ -31,6 +33,9 @@ inline Matrix from_arma(const arma::mat& A) {
                          static_cast<int>(A.n_cols));
 }
 
+// compare MatrixLibrary matrix to Armadillo matrix using absolute 
+// and relative tolerances.
+// returns 
 inline bool mats_close(const Matrix& M,
                        const arma::mat& A,
                        double atol = 1e-12,
@@ -51,6 +56,8 @@ inline bool mats_close(const Matrix& M,
     return true;
 }
 
+// compute maximum absolute elementwise error between MatrixLibrary and Armadillo matrices
+// throws if shapes mismatch
 inline double max_abs_error(const Matrix& M, const arma::mat& A) {
     if (M.get_num_rows() != static_cast<int>(A.n_rows) ||
         M.get_num_cols() != static_cast<int>(A.n_cols)) {
@@ -84,6 +91,7 @@ inline double max_abs_error_vec(const vec& v, const arma::vec& ref) {
     return max_err;
 }
 
+// generate random symmetric matrix of specified size n
 inline Matrix random_symmetric_matrix(int n) {
     Matrix A = Matrix::Random(n, n);
     Matrix S(n, n);

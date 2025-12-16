@@ -50,7 +50,7 @@ TEST(MatrixBasics, FromVectorConstructorMatchesArmadillo) {
 
 // testing helper methods that build specific matrices (zeros, ones, identity)
 
-// testing identity marix builds correctly
+// testing identity matrix builds correctly
 TEST(MatrixBasics, IdentityCorrect) {
     int n = 5;
     Matrix I = Matrix::Identity(n);
@@ -115,7 +115,7 @@ TEST(MatrixBasics, ElementAccessAndEquality) {
 // type used to describe matrix shapes (rows, cols)
 using TransposeParam = std::tuple<int, int>;
 
-// test class that receives transposeparam for each run
+// test class that receives transpose param for each run
 class MatrixTransposeTest : public ::testing::TestWithParam<TransposeParam> {};
 
 TEST_P(MatrixTransposeTest, TransposeMatchesArmadilloForShape) {

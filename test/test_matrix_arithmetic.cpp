@@ -1,4 +1,3 @@
-// test/test_matrix_arithmetic.cpp
 #include <gtest/gtest.h>
 #include <tuple> // for std::tuple in parameterized mul test
 #include "matrix.h"
@@ -8,9 +7,9 @@
 
 static const char* BASIC_CSV = "basic_accuracy.csv";
 
-// ##### PARAMETERIZED TESTS FOR DIFFERENT SIZES #####
+// ##### PARAMETERIZED TESTS FOR DIFFERENT SIZES ##### //
 
-// fixture (test class) that holds the int parameter (the matrix size n)
+// test class that holds the int parameter (the matrix size n)
 class MatrixSizeTest : public ::testing::TestWithParam<int> {};
 
 // creates 2 random n x n matrices using Matrix lib, adds them.

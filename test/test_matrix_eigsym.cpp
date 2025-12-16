@@ -5,8 +5,7 @@
 #include "test_helpers.hpp"
 #include <fstream>
 
-// basic one size sanity test
-
+// set output file for accuracy data
 static const char* EIGSYM_OUT = "eigsym_accuracy.txt";
 
 inline arma::vec to_arma_vec(const vec& v) {
@@ -17,6 +16,7 @@ inline arma::vec to_arma_vec(const vec& v) {
     return out;
 }
 
+// single matrix sanity check
 TEST(MatrixEigsym, EigsymMatchesArmadilloSmall) {
     int n = 4;
     Matrix S = random_symmetric_matrix(n);
@@ -59,13 +59,13 @@ TEST(MatrixEigsym, EigsymMatchesArmadilloSmall) {
         << recon_err << " "
         << orth_err << "\n";
 
-    // can tune these tolerances based on floating-point error if we want
+    // can tune these tolerances based on floating-point error if wanted
     EXPECT_LT(max_eval_err, 1e-10);
     EXPECT_LT(recon_err,   1e-10);
     EXPECT_LT(orth_err,    1e-10);
 }
 
-// #### parameterized tests with different matrix sizes ####
+// #### parameterized tests with different matrix sizes #### //
 
 class EigsymSizeTest : public ::testing::TestWithParam<int> {};
 
@@ -155,7 +155,7 @@ TEST(MatrixEigsym, EigsymDiagonalMatrix) {
 
     EigsymResult res = S.eigsym();
 
-    // sort our eigenvalues and the true diagonal values and compare
+    // sort eigenvalues and the true diagonal values and compare
     arma::vec evals_mat_lib = arma::sort(to_arma_vec(res.eigenvalues));
     arma::vec evals_true(n);
     for (int i = 0; i < n; ++i) {
@@ -166,7 +166,7 @@ TEST(MatrixEigsym, EigsymDiagonalMatrix) {
     double max_eval_err = arma::max(arma::abs(evals_mat_lib - evals_true));
     EXPECT_LT(max_eval_err, 1e-12);
 
-    // also check reconstruction & orthogonality
+    // also check reconstruction and orthogonality
     arma::mat V = to_arma(res.eigenvectors);
     arma::vec evals_unsorted = to_arma_vec(res.eigenvalues);
     arma::mat S_recon = V * arma::diagmat(evals_unsorted) * V.t();
