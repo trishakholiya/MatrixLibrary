@@ -39,7 +39,7 @@ test/           # Google Unit Tests and numerical accuracy validation
 benchmarking/   # Google Benchmark Runtime Benchmarking
 cmake/          # CMake configuration template
 report/         # Final Project Report, Presentation, and Doxygen PDF
-.github/        # CI configuration (GitHub Actions)
+.github/        # GitHub Actions Configuration
 ```
 
 ---
